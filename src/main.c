@@ -311,8 +311,7 @@ void Task_Button_Control_L298(void)
         time_motor = 0;
         /** mo cua*/
         LED_ON();
-        GPIO_SetBits(GPIOB, PIN_IN1_L298);
-        GPIO_ResetBits(GPIOB, PIN_IN2_L298);
+        OPEN_DOOR();
         Sensor_Detect_Event(GPIOB, PIN_CONTROL_RIGHT, &status_sensor_right);
 //
         while(status_sensor_right != false)
@@ -336,8 +335,7 @@ void Task_Button_Control_L298(void)
         if(GPIO_ReadInputDataBit(GPIOA, SENSOR_PIN) == false)// cua van dong
         {
             /** Dong cua */
-            GPIO_SetBits(GPIOB, PIN_IN2_L298);
-            GPIO_ResetBits(GPIOB, PIN_IN1_L298);
+           CLOSE_DOOR();
             Sensor_Detect_Event(GPIOA, PIN_CONTROL_LEFT, &status_sensor_left);
 
             if(status_sensor_left == false)

@@ -4438,7 +4438,7 @@ OUTPUT(bin\Debug\LOCK_RX.elf elf32-littlearm)
  .debug_macro   0x0000f9a7       0x22 obj\debug\src\main.o
  .debug_macro   0x0000f9c9      0x19b obj\debug\src\system_stm32f10x.o
 
-.debug_line     0x00000000     0x4981
+.debug_line     0x00000000     0x497f
  .debug_line    0x00000000      0x4cf obj\debug\spl\src\delay.o
  .debug_line    0x000004cf      0x530 obj\debug\spl\src\driver_uart.o
  .debug_line    0x000009ff      0x65f obj\debug\spl\src\flash.o
@@ -4448,9 +4448,9 @@ OUTPUT(bin\Debug\LOCK_RX.elf elf32-littlearm)
  .debug_line    0x000021e5      0x701 obj\debug\spl\src\stm32f10x_rcc.o
  .debug_line    0x000028e6      0xd86 obj\debug\spl\src\stm32f10x_tim.o
  .debug_line    0x0000366c      0x6d3 obj\debug\spl\src\stm32f10x_usart.o
- .debug_line    0x00003d3f      0x6d1 obj\debug\src\main.o
- .debug_line    0x00004410       0xa8 obj\debug\src\startup_stm32f10x_md.o
- .debug_line    0x000044b8      0x4c9 obj\debug\src\system_stm32f10x.o
+ .debug_line    0x00003d3f      0x6cf obj\debug\src\main.o
+ .debug_line    0x0000440e       0xa8 obj\debug\src\startup_stm32f10x_md.o
+ .debug_line    0x000044b6      0x4c9 obj\debug\src\system_stm32f10x.o
 
 .debug_str      0x00000000    0x55985
  .debug_str     0x00000000    0x4e552 obj\debug\spl\src\delay.o
