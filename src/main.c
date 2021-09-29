@@ -27,13 +27,15 @@
 #define PIN_CONTROL_RIGHT         GPIO_Pin_9
 #define PIN_CONTROL_MOTOR         GPIO_Pin_2
 
-#define LED_OFF()           GPIO_SetBits(GPIOC, GPIO_Pin_13)
-#define LED_ON()            GPIO_ResetBits(GPIOC, GPIO_Pin_13)
+#define LED_ON()                  GPIO_SetBits(GPIOA, GPIO_Pin_5)
+#define LED_OFF()                 GPIO_ResetBits(GPIOA, GPIO_Pin_5)
 
-#define MOTOR_DISABLE()     GPIO_ResetBits(GPIOB, PIN_IN1_L298), GPIO_ResetBits(GPIOB, PIN_IN2_L298)
+#define MOTOR_DISABLE()           GPIO_ResetBits(GPIOB, PIN_IN1_L298), GPIO_ResetBits(GPIOB, PIN_IN2_L298)
+#define OPEN_DOOR()               GPIO_SetBits(GPIOB, PIN_IN1_L298), GPIO_ResetBits(GPIOB, PIN_IN2_L298)
+#define CLOSE_DOOR()              GPIO_SetBits(GPIOB, PIN_IN2_L298), GPIO_ResetBits(GPIOB, PIN_IN1_L298)
 
-#define STM32_UUID          ((uint32_t *)0x1FFFF7E8)
-#define FLASH_UID_ADDR      0x08007C00
+#define STM32_UUID                ((uint32_t *)0x1FFFF7E8)
+#define FLASH_UID_ADDR            0x08007C00
 
 bool status_pair = false;
 volatile uint8_t slot_rx_time = 0;
@@ -111,7 +113,7 @@ void Gpio_Init(void)
 
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
     GPIO_Init_Structure.GPIO_Mode  = GPIO_Mode_IPU;
-    GPIO_Init_Structure.GPIO_Pin   = BUTTON_PAIR|SENSOR_PIN|PIN_CONTROL_MOTOR;
+    GPIO_Init_Structure.GPIO_Pin   = BUTTON_PAIR|SENSOR_PIN|PIN_CONTROL_MOTOR|GPIO_Pin_5;
     GPIO_Init_Structure.GPIO_Speed = GPIO_Speed_10MHz;
     GPIO_Init(GPIOA, &GPIO_Init_Structure);
 }
@@ -308,6 +310,7 @@ void Task_Button_Control_L298(void)
     {
         time_motor = 0;
         /** mo cua*/
+        LED_ON();
         GPIO_SetBits(GPIOB, PIN_IN1_L298);
         GPIO_ResetBits(GPIOB, PIN_IN2_L298);
         Sensor_Detect_Event(GPIOB, PIN_CONTROL_RIGHT, &status_sensor_right);
@@ -341,6 +344,7 @@ void Task_Button_Control_L298(void)
             {
                 MOTOR_DISABLE();
             }
+            LED_OFF();
         }
     }
 }
@@ -372,9 +376,7 @@ void Task_Uart_Control_L298(char *str)
         {
             time_motor = 0;
             /** mo cua*/
-            MOTOR_ENABLE();
-            GPIO_SetBits(GPIOB, PIN_IN1_L298);
-            GPIO_ResetBits(GPIOB, PIN_IN2_L298);
+             OPEN_DOOR();
             Sensor_Detect_Event(GPIOB, PIN_CONTROL_RIGHT, &status_sensor_right);
             while(status_sensor_right != false)
             {
@@ -397,9 +399,7 @@ void Task_Uart_Control_L298(char *str)
             if(GPIO_ReadInputDataBit(GPIOA, SENSOR_PIN) == false)// cua van dong
             {
                 /** Dong cua */
-                GPIO_SetBits(GPIOB, PIN_IN2_L298);
-                GPIO_ResetBits(GPIOB, PIN_IN1_L298);
-                MOTOR_ENABLE();
+                CLOSE_DOOR();
                 Sensor_Detect_Event(GPIOA, PIN_CONTROL_LEFT, &status_sensor_left);
 
                 if(status_sensor_left == false)
