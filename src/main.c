@@ -304,9 +304,10 @@ void Task_Button_Control_L298(void)
     bool status_sensor_right;
     Sensor_Detect_Event(GPIOA, PIN_CONTROL_MOTOR, &status_motor_t);
     Sensor_Detect_Event(GPIOB, PIN_CONTROL_LEFT, &status_sensor_left);
+    Sensor_Detect_Event(GPIOB, PIN_CONTROL_RIGHT, &status_sensor_right);
 
     //open door
-    if(status_motor_t == false && status_sensor_left == false)
+    if(status_motor_t == false && status_sensor_left == false && GPIO_ReadInputDataBit(GPIOA, SENSOR_PIN) == false)
     {
         time_motor = 0;
         /** mo cua*/
@@ -336,14 +337,27 @@ void Task_Button_Control_L298(void)
         {
             /** Dong cua */
            CLOSE_DOOR();
-            Sensor_Detect_Event(GPIOA, PIN_CONTROL_LEFT, &status_sensor_left);
-
-            if(status_sensor_left == false)
+           Sensor_Detect_Event(GPIOB, PIN_CONTROL_LEFT, &status_sensor_left);
+            while(status_sensor_left != false)
             {
-                MOTOR_DISABLE();
+                Sensor_Detect_Event(GPIOB, PIN_CONTROL_LEFT, &status_sensor_left);
             }
+            MOTOR_DISABLE();
             LED_OFF();
         }
+    }
+
+    if(GPIO_ReadInputDataBit(GPIOA, SENSOR_PIN) == false && status_sensor_right == false)// cua van dong
+    {
+        /** Dong cua */
+       CLOSE_DOOR();
+       Sensor_Detect_Event(GPIOB, PIN_CONTROL_LEFT, &status_sensor_left);
+        while(status_sensor_left != false)
+        {
+            Sensor_Detect_Event(GPIOB, PIN_CONTROL_LEFT, &status_sensor_left);
+        }
+        MOTOR_DISABLE();
+        LED_OFF();
     }
 }
 
