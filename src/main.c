@@ -412,7 +412,7 @@ void Task_Uart_Control_L298(char *str)
             {
                 /** Dong cua */
                 CLOSE_DOOR();
-                Sensor_Detect_Event(GPIOA, PIN_CONTROL_LEFT, &status_sensor_left);
+                Sensor_Detect_Event(GPIOB, PIN_CONTROL_LEFT, &status_sensor_left);
 
                 if(status_sensor_left == false)
                 {
