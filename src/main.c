@@ -19,6 +19,8 @@
 
 #define BUTTON_PAIR               GPIO_Pin_0
 #define SENSOR_PIN                GPIO_Pin_1
+#define RF_CS_PIN                 GPIO_Pin_7
+#define RF_SET_PIN                GPIO_Pin_8
 
 #define PIN_IN1_L298              GPIO_Pin_12
 #define PIN_IN2_L298              GPIO_Pin_13
@@ -27,8 +29,8 @@
 #define PIN_CONTROL_RIGHT         GPIO_Pin_9
 #define PIN_CONTROL_MOTOR         GPIO_Pin_2
 
-#define LED_ON()                  GPIO_SetBits(GPIOA, GPIO_Pin_5)
-#define LED_OFF()                 GPIO_ResetBits(GPIOA, GPIO_Pin_5)
+#define LED_ON()                  GPIO_SetBits(GPIOA, GPIO_Pin_6)
+#define LED_OFF()                 GPIO_ResetBits(GPIOA, GPIO_Pin_6)
 
 #define MOTOR_DISABLE()           GPIO_ResetBits(GPIOB, PIN_IN1_L298), GPIO_ResetBits(GPIOB, PIN_IN2_L298)
 #define OPEN_DOOR()               GPIO_SetBits(GPIOB, PIN_IN1_L298), GPIO_ResetBits(GPIOB, PIN_IN2_L298)
@@ -113,8 +115,13 @@ void Gpio_Init(void)
 
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
     GPIO_Init_Structure.GPIO_Mode  = GPIO_Mode_IPU;
-    GPIO_Init_Structure.GPIO_Pin   = BUTTON_PAIR|SENSOR_PIN|PIN_CONTROL_MOTOR|GPIO_Pin_5;
+    GPIO_Init_Structure.GPIO_Pin   = BUTTON_PAIR|SENSOR_PIN|PIN_CONTROL_MOTOR;
     GPIO_Init_Structure.GPIO_Speed = GPIO_Speed_10MHz;
+    GPIO_Init(GPIOA, &GPIO_Init_Structure);
+
+     GPIO_Init_Structure.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_Init_Structure.GPIO_Pin    = RF_CS_PIN|RF_SET_PIN|GPIO_Pin_6;
+    GPIO_Init_Structure.GPIO_Speed  = GPIO_Speed_10MHz;
     GPIO_Init(GPIOA, &GPIO_Init_Structure);
 }
 /**
@@ -314,7 +321,6 @@ void Task_Button_Control_L298(void)
         LED_ON();
         OPEN_DOOR();
         Sensor_Detect_Event(GPIOB, PIN_CONTROL_RIGHT, &status_sensor_right);
-//
         while(status_sensor_right != false)
         {
             Sensor_Detect_Event(GPIOB, PIN_CONTROL_RIGHT, &status_sensor_right);
@@ -423,17 +429,29 @@ void Task_Uart_Control_L298(char *str)
     }
 }
 
+void Task_Sync(char *str)
+{
+    char sync_arr[22];
+    char type[5];
+    char id_master[15];
+    char id_node[5];
+    char mess[5];
+    Flash_ReadChar(sync_arr, FLASH_UID_ADDR, sizeof(sync_arr));
+    Process_Message(sync_arr, type, id_master, id_node, mess);
+}
+
 int main(void)
 {
     SysTick_Init();
     Timer_Init();
     Gpio_Init();
 
-    UART1_Init_A9A10(19200);
-    UART3_Config(19200);
-
+    UART1_Init_A9A10(9600);
+    UART3_Config(9600);
+    GPIO_SetBits(GPIOA, RF_SET_PIN);
+    GPIO_ResetBits(GPIOA, RF_CS_PIN);
     LED_OFF();
-   // while(strstr(uart1_rx, "sync") == NULL);
+
     while(1)
     {
         Task_Pair_RF_Connect(uart1_rx);
