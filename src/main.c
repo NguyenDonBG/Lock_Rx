@@ -137,7 +137,7 @@ void Button_Detect_Event(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, bool *status)
         status_button = true;
     }
 
-    else if(GPIO_ReadInputDataBit(GPIOx, GPIO_Pin) == 0 && status_button == true)
+    if(GPIO_ReadInputDataBit(GPIOx, GPIO_Pin) == 0 && status_button == true)
     {
         status_button = false;
         *status = true;
@@ -158,7 +158,7 @@ void Sensor_Detect_Event(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, bool *status)
          *status = true;
     }
 
-    else if(GPIO_ReadInputDataBit(GPIOx, GPIO_Pin) == 0 && status_sensor == true)
+    if(GPIO_ReadInputDataBit(GPIOx, GPIO_Pin) == 0 && status_sensor == true)
     {
         status_sensor = false;
         *status = false;
@@ -289,11 +289,11 @@ void Task_Send_Sensor_Status(void)
 
     if(status)
     {
-         printf("lock,%s,%s,lock,\n", id_master, id_node);
+         printf("lock,%s,%s,open,\n", id_master, id_node);
     }
 
     else{
-        printf("lock,%s,%s,open,\n", id_master, id_node);
+        printf("lock,%s,%s,lock,\n", id_master, id_node);
     }
 }
 
@@ -429,7 +429,7 @@ void Task_Uart_Control_L298(char *str)
     }
 }
 
-void Task_Sync(char *str)
+bool Task_Sync(char *str)
 {
     char sync_arr[22];
     char type[5];
@@ -438,6 +438,11 @@ void Task_Sync(char *str)
     char mess[5];
     Flash_ReadChar(sync_arr, FLASH_UID_ADDR, sizeof(sync_arr));
     Process_Message(sync_arr, type, id_master, id_node, mess);
+    if(strstr(str, "sync") != NULL && strstr(str, id_master) != NULL && strstr(str, id_node) && strstr(str, "true") !=  NULL)
+    {
+        return true;
+    }
+    return false;
 }
 
 int main(void)
@@ -451,12 +456,11 @@ int main(void)
     GPIO_SetBits(GPIOA, RF_SET_PIN);
     GPIO_ResetBits(GPIOA, RF_CS_PIN);
     LED_OFF();
-
     while(1)
     {
         Task_Pair_RF_Connect(uart1_rx);
         Task_Button_Control_L298();
-        if(strstr(uart1_rx, "sync") != NULL)
+        if(Task_Sync(uart1_rx) == true)
         {
             slot_rx_time = 0;
             memset(uart1_rx, 0 , sizeof(uart1_rx));

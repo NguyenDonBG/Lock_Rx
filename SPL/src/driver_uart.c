@@ -31,7 +31,7 @@ void UART1_Init_A9A10(uint16_t baudrate)
 
     // GPIOA PIN10 alternative function Rx
     gpio_init_struct.GPIO_Pin = GPIO_Pin_10;
-    gpio_init_struct.GPIO_Mode = GPIO_Mode_IPD;
+    gpio_init_struct.GPIO_Mode = GPIO_Mode_IN_FLOATING;
     GPIO_Init(GPIOA, &gpio_init_struct);
   }
 
@@ -102,13 +102,13 @@ void UART_PutStr(USART_TypeDef *USARTx, char *Str){
 
 void USART3_IRQHandler()// đọc dữ liệu từ UART gửi xuống và lưu vào mảng
 {
-  uint8_t chartoreceive = USART_GetChar(USART3);// gán biến bằng dữ liệu uart gửi xuống
-  Rx_bufArr[rx_count] = chartoreceive;// lưu dữ liệu vào mảngb
-  rx_count++;
-  if(Rx_bufArr[rx_count-1] == '\n')
-  {
-    rx_count = 0;
-  }
+    uint8_t chartoreceive = USART_GetChar(USART3);// gán biến bằng dữ liệu uart gửi xuống
+    Rx_bufArr[rx_count] = chartoreceive;// lưu dữ liệu vào mảngb
+    rx_count++;
+    if(Rx_bufArr[rx_count-1] == '\n')
+    {
+        rx_count = 0;
+    }
 }
 
 void USART1_IRQHandler()// đọc dữ liệu từ UART gửi xuống và lưu vào mảng
