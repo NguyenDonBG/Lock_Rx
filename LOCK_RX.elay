@@ -1,22 +1,47 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <EmBitz_layout_file>
 	<ActiveTarget name="Debug" />
-	<File name="SPL\src\driver_uart.c" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="SPL\inc\stm32f10x_exti.h" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1576" topLine="3" />
+			<Cursor1 position="6452" topLine="134" />
 		</Cursor>
 	</File>
-	<File name="SPL\src\flash.c" open="1" top="0" tabpos="15" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="SPL\inc\stm32f10x_gpio.h" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="16020" topLine="262" />
+		</Cursor>
+	</File>
+	<File name="SPL\src\driver_uart.c" open="1" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3226" topLine="84" />
+		</Cursor>
+	</File>
+	<File name="SPL\src\flash.c" open="0" top="0" tabpos="15" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="1989" topLine="40" />
 		</Cursor>
 	</File>
-	<File name="src\main.c" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+	<File name="SPL\src\lowpowerMCU.c" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="5379" topLine="129" />
+			<Cursor1 position="0" topLine="4" />
 		</Cursor>
 	</File>
-	<File name="src\startup_stm32f10x_md.S" open="1" top="0" tabpos="14" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="SPL\src\stm32f10x_exti.c" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="6676" topLine="219" />
+		</Cursor>
+	</File>
+	<File name="SPL\src\stm32f10x_gpio.c" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="21703" topLine="587" />
+		</Cursor>
+	</File>
+	<File name="src\main.c" open="1" top="1" tabpos="3" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="8269" topLine="247" />
+		</Cursor>
+	</File>
+	<File name="src\startup_stm32f10x_md.S" open="0" top="0" tabpos="14" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="6517" topLine="111" />
 		</Cursor>

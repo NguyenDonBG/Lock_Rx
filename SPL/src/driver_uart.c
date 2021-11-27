@@ -9,7 +9,7 @@ void UART1_Init_A9A10(uint16_t baudrate)
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1 | RCC_APB2Periph_GPIOA, ENABLE);
 
   USART_InitTypeDef USART_InitStructure;
-  USART_InitStructure.USART_BaudRate = 9600;
+  USART_InitStructure.USART_BaudRate = baudrate;
   USART_InitStructure.USART_WordLength = USART_WordLength_8b;
   USART_InitStructure.USART_StopBits = USART_StopBits_1;
   USART_InitStructure.USART_Parity = USART_Parity_No;
@@ -17,7 +17,12 @@ void UART1_Init_A9A10(uint16_t baudrate)
   USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
   USART_Init(USART1, &USART_InitStructure);       // Configure the USART1
   USART_ITConfig(USART1,USART_IT_RXNE, ENABLE);//
-  NVIC_EnableIRQ(USART1_IRQn);//
+  NVIC_InitTypeDef        NVIC_InitStructure;
+NVIC_InitStructure.NVIC_IRQChannel    = USART1_IRQn;
+NVIC_InitStructure.NVIC_IRQChannelCmd  = ENABLE;
+NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+NVIC_Init(&NVIC_InitStructure);
   USART_Cmd(USART1, ENABLE);  // enable UART1
 
   {
@@ -47,7 +52,7 @@ int _write(int file, char *ptr, int len)
   return len;
 }
 
-void UART3_Config(uint16_t baudrate)
+void UART3_Config(uint32_t baudrate)
 {
   /*Cap clock cho USART và port su dung*/
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
@@ -73,7 +78,13 @@ void UART3_Config(uint16_t baudrate)
 	UART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
 	USART_Init(USART3, &UART_InitStructure);
 	USART_ITConfig(USART3,USART_IT_RXNE, ENABLE);
-	NVIC_EnableIRQ(USART3_IRQn);
+	NVIC_InitTypeDef        NVIC_InitStructure;
+
+    NVIC_InitStructure.NVIC_IRQChannel    = USART3_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelCmd  = ENABLE;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+    NVIC_Init(&NVIC_InitStructure);
 	/* Cho phep UART hoat dong */
 	USART_Cmd(USART3, ENABLE);
 
@@ -102,13 +113,13 @@ void UART_PutStr(USART_TypeDef *USARTx, char *Str){
 
 void USART3_IRQHandler()// đọc dữ liệu từ UART gửi xuống và lưu vào mảng
 {
-    uint8_t chartoreceive = USART_GetChar(USART3);// gán biến bằng dữ liệu uart gửi xuống
-    Rx_bufArr[rx_count] = chartoreceive;// lưu dữ liệu vào mảngb
-    rx_count++;
-    if(Rx_bufArr[rx_count-1] == '\n')
-    {
-        rx_count = 0;
-    }
+  uint8_t chartoreceive = USART_GetChar(USART3);// gán biến bằng dữ liệu uart gửi xuống
+  Rx_bufArr[rx_count] = chartoreceive;// lưu dữ liệu vào mảngb
+  rx_count++;
+  if(Rx_bufArr[rx_count-1] == '\n')
+  {
+    rx_count = 0;
+  }
 }
 
 void USART1_IRQHandler()// đọc dữ liệu từ UART gửi xuống và lưu vào mảng

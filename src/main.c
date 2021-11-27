@@ -37,10 +37,11 @@
 #define CLOSE_DOOR()              GPIO_SetBits(GPIOB, PIN_IN2_L298), GPIO_ResetBits(GPIOB, PIN_IN1_L298)
 
 #define STM32_UUID                ((uint32_t *)0x1FFFF7E8)
-#define FLASH_UID_ADDR            0x08007C00
+#define FLASH_UID_ADDR            0x0801FC00
 
 bool status_pair = false;
 volatile uint8_t slot_rx_time = 0;
+volatile uint8_t slot_ping_time = 0;
 volatile uint8_t sync_send_time = 0;
 volatile bool sync_status = true;
 volatile bool tx1_status = true;
@@ -49,8 +50,14 @@ volatile bool ping_status = true;
 volatile bool status_motor = true;
 volatile uint8_t time_motor = true;
 
-extern char Rx_bufArr[128];
-extern char uart1_rx[128];
+char status_pair_arr[64];
+char type[2];
+char ID_master[5];
+char id_node[1];
+char mess[1];
+
+extern char Rx_bufArr[13];
+extern char uart1_rx[13];
 
 void Timer_Init(void)
 {
@@ -68,7 +75,7 @@ void Timer_Init(void)
     NVIC_InitStructure.NVIC_IRQChannel    = TIM2_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelCmd  = ENABLE;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 10;
     NVIC_Init(&NVIC_InitStructure);
 }
 
@@ -79,9 +86,14 @@ void TIM2_IRQHandler(void)
         slot_rx_time++;
         status_motor = false;
         if(slot_rx_time == 1) tx1_status = false;
-        if(slot_rx_time == 3) rx_status = false;
-        if(slot_rx_time == 5) ping_status = false;
-        if(slot_rx_time > 10)
+        if(slot_rx_time == 2) rx_status = false;
+        if(slot_rx_time == 3)
+        {
+            slot_ping_time++;
+            if(slot_ping_time == 2) ping_status = false;
+            if(slot_ping_time > 2) slot_ping_time = 0;
+        }
+        if(slot_rx_time > 3)
         {
             slot_rx_time = 0;
         }
@@ -96,32 +108,28 @@ void TIM2_IRQHandler(void)
   */
 void Gpio_Init(void)
 {
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC|RCC_APB2Periph_GPIOB, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
     GPIO_InitTypeDef   GPIO_Init_Structure;
-    GPIO_Init_Structure.GPIO_Mode  = GPIO_Mode_Out_PP;
-    GPIO_Init_Structure.GPIO_Pin   = GPIO_Pin_13;
-    GPIO_Init_Structure.GPIO_Speed = GPIO_Speed_10MHz;
-    GPIO_Init(GPIOC, &GPIO_Init_Structure);
 
     GPIO_Init_Structure.GPIO_Mode  = GPIO_Mode_Out_PP;
     GPIO_Init_Structure.GPIO_Pin   = PIN_IN1_L298|PIN_IN2_L298|PIN_CONTROL_L298;
     GPIO_Init_Structure.GPIO_Speed = GPIO_Speed_10MHz;
     GPIO_Init(GPIOB, &GPIO_Init_Structure);
 
-    GPIO_Init_Structure.GPIO_Mode  = GPIO_Mode_IPU;
+    GPIO_Init_Structure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
     GPIO_Init_Structure.GPIO_Pin   = PIN_CONTROL_LEFT|PIN_CONTROL_RIGHT;
     GPIO_Init_Structure.GPIO_Speed = GPIO_Speed_10MHz;
     GPIO_Init(GPIOB, &GPIO_Init_Structure);
 
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-    GPIO_Init_Structure.GPIO_Mode  = GPIO_Mode_IPU;
+    GPIO_Init_Structure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
     GPIO_Init_Structure.GPIO_Pin   = BUTTON_PAIR|SENSOR_PIN|PIN_CONTROL_MOTOR;
     GPIO_Init_Structure.GPIO_Speed = GPIO_Speed_10MHz;
     GPIO_Init(GPIOA, &GPIO_Init_Structure);
 
      GPIO_Init_Structure.GPIO_Mode  = GPIO_Mode_Out_PP;
     GPIO_Init_Structure.GPIO_Pin    = RF_CS_PIN|RF_SET_PIN|GPIO_Pin_6;
-    GPIO_Init_Structure.GPIO_Speed  = GPIO_Speed_10MHz;
+    GPIO_Init_Structure.GPIO_Speed  = GPIO_Speed_50MHz;
     GPIO_Init(GPIOA, &GPIO_Init_Structure);
 }
 /**
@@ -169,53 +177,48 @@ void Sensor_Detect_Event(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, bool *status)
   * @param
   * @retval
   */
-bool Process_Message(char *str, char *type, char *ID_get_way, char *ID_node, char *mess)
+void Process_Message(char *str, char *type, char *ID_get_way, char *ID_node, char *mess)
 {
     char *p_rx;
     char *p_type;
     char *p_id_getway;
     char *p_id_node;
     char *p_mess;
-    if((str != NULL) && (type != NULL) && (ID_get_way != NULL) && (ID_node != NULL) && (mess != NULL))
+    p_rx = str;
+    p_type = p_rx;
+    p_rx = strchr(p_type, ',');
+
+    if(p_rx != NULL)
     {
-        p_rx = str;
-        p_type = p_rx;
-        p_rx = strchr(p_type,',');
-        if(p_rx != NULL)
-        {
-            *p_rx = 0;
-            strcpy(type,p_type);
-        }
-        p_id_getway = p_rx+1;
-        p_rx = strchr(p_id_getway,',');
-        if(p_rx != NULL)
-        {
-            *p_rx = 0;
-            strcpy(ID_get_way,p_id_getway);
-        }
-        p_id_node = p_rx+1;
-        p_rx = strchr(p_id_node,',');
-        if(p_rx != NULL)
-        {
-            *p_rx = 0;
-            strcpy(ID_node,p_id_node);
-        }
-        p_mess = p_rx+1;
-        p_rx = strchr(p_mess, ',');
-        if(p_rx != NULL)
-        {
-            *p_rx = 0;
-            strcpy(mess, p_mess);
-        }
-        return true;
+        *p_rx = 0;
+        strcpy(type,p_type);
     }
 
-    else{
-        return false;
+    p_id_getway = p_rx+1;
+    p_rx = strchr(p_id_getway, ',');
+    if(p_rx != NULL)
+    {
+        *p_rx = 0;
+        strcpy(ID_get_way,p_id_getway);
     }
+
+    p_id_node = p_rx+1;
+    p_rx = strchr(p_id_node, ',');
+    if(p_rx != NULL)
+    {
+        *p_rx = 0;
+        strcpy(ID_node,p_id_node);
+    }
+
+    p_mess = p_rx+1;
+    p_rx = strchr(p_mess, ',');
+    if(p_rx != NULL)
+    {
+        *p_rx = 0;
+        strcpy(mess, p_mess);
+    }
+
 }
-
-
 /**
   * @brief
   * @param
@@ -224,28 +227,21 @@ bool Process_Message(char *str, char *type, char *ID_get_way, char *ID_node, cha
 void Task_Pair_RF_Connect(char *str)
 {
     Button_Detect_Event(GPIOA, BUTTON_PAIR, &status_pair);
-    char status_pair_arr[22];
+    char status_pair_arr[30];
     while(status_pair)
     {
         LED_ON();
-        if(strstr(str, "pair") != NULL)
+        if(strstr(str, "pa") != NULL)
         {
-            UART_PutStr(USART3, "READ_RX_MASTER: ");// debug
-            UART_PutStr(USART3, str);// debug
-            __disable_irq();
             Flash_ProgramPage(str, FLASH_UID_ADDR);
-            __enable_irq();
             memset(str, 0, strlen(str));
         }
         Flash_ReadChar(status_pair_arr, FLASH_UID_ADDR, sizeof(status_pair_arr));
 
-        if(strstr(status_pair_arr,"pair") != NULL)
+        if(strstr(status_pair_arr,"1") != NULL)
         {
-            UART_PutStr(USART3, "READ_FLASH: ");// debug
-            UART_PutStr(USART3, status_pair_arr);// debug
             LED_OFF();
             status_pair = false;
-
         }
     }
 }
@@ -256,16 +252,9 @@ void Task_Pair_RF_Connect(char *str)
   * @retval
   */
 
-void Task_Ping_Status(void)
+void Task_Ping_Status(char id_master[])
 {
-    char status_pair_arr[22];
-    char type[5];
-    char id_master[15];
-    char id_node[5];
-    char mess[5];
-    Flash_ReadChar(status_pair_arr, FLASH_UID_ADDR, sizeof(status_pair_arr));
-    Process_Message(status_pair_arr, type, id_master, id_node, mess);
-    printf("ping,%s,%s,true,\n", id_master, id_node);
+    printf(",pi,%s,1,1,\r\n", id_master);
 }
 
 /**
@@ -274,26 +263,20 @@ void Task_Ping_Status(void)
   * @retval
   */
 
-void Task_Send_Sensor_Status(void)
+void Task_Send_Sensor_Status(char id_master[])
 {
     bool status;
-    char status_pair_arr[22];
-    char type[5];
-    char id_master[15];
-    char id_node[5];
-    char mess[5];
     MOTOR_DISABLE();
-    Flash_ReadChar(status_pair_arr, FLASH_UID_ADDR, sizeof(status_pair_arr));
-    Process_Message(status_pair_arr, type, id_master, id_node, mess);
+
     Sensor_Detect_Event(GPIOA, SENSOR_PIN, &status);
 
     if(status)
     {
-         printf("lock,%s,%s,open,\n", id_master, id_node);
+         printf(",lk,%s,1,1,\r\n", id_master);
     }
 
     else{
-        printf("lock,%s,%s,lock,\n", id_master, id_node);
+        printf(",lk,%s,1,0,\r\n", id_master);
     }
 }
 
@@ -316,6 +299,7 @@ void Task_Button_Control_L298(void)
     //open door
     if(status_motor_t == false && status_sensor_left == false && GPIO_ReadInputDataBit(GPIOA, SENSOR_PIN) == false)
     {
+
         time_motor = 0;
         /** mo cua*/
         LED_ON();
@@ -327,7 +311,7 @@ void Task_Button_Control_L298(void)
 
         }
         MOTOR_DISABLE();
-        while(time_motor < 10)
+        while(time_motor < 5)
         {
 
             if(status_motor == false)
@@ -373,13 +357,12 @@ void Task_Button_Control_L298(void)
   * @retval
   */
 
-void Task_Uart_Control_L298(char *str)
+void Task_Uart_Control_L298(char *str, char *ID_master)
 {
-    char status_pair_arr[22];
-    char type[5], type_rx[5];
-    char id_master[15],id_master_rx[15];
-    char id_node[5],id_node_rx[5];
-    char mess[5],mess_rx[5];
+    char type_rx[5];
+    char id_master_rx[15];
+    char id_node_rx[5];
+    char mess_rx[5];
     bool status_door;
     bool status_motor_t;
     bool status_sensor_left;
@@ -387,14 +370,13 @@ void Task_Uart_Control_L298(char *str)
 
     if(strlen(str) > 0)
     {
-        Flash_ReadChar(status_pair_arr, FLASH_UID_ADDR, sizeof(status_pair_arr));
         Process_Message(str, type_rx, id_master_rx, id_node_rx, mess_rx);
-        Process_Message(status_pair_arr, type, id_master, id_node, mess);
-        if((strstr(type_rx, "ctrl") != NULL) && (strstr(id_master, id_master_rx) != NULL) && (strstr(id_node_rx,id_node) != NULL) && (strstr(mess_rx,"open") != NULL))
+        if((strstr(type_rx, "ct") != NULL) && (strstr(ID_master, id_master_rx) != NULL) && (strstr(id_node_rx,"1") != NULL) && (strstr(mess_rx,"1") != NULL))
         {
             time_motor = 0;
             /** mo cua*/
-             OPEN_DOOR();
+            OPEN_DOOR();
+            LED_ON();
             Sensor_Detect_Event(GPIOB, PIN_CONTROL_RIGHT, &status_sensor_right);
             while(status_sensor_right != false)
             {
@@ -402,7 +384,7 @@ void Task_Uart_Control_L298(char *str)
 
             }
             MOTOR_DISABLE();
-            while(time_motor < 10)
+            while(time_motor < 5)
             {
 
                 if(status_motor == false)
@@ -414,78 +396,71 @@ void Task_Uart_Control_L298(char *str)
 
             Sensor_Detect_Event(GPIOA, SENSOR_PIN, &status_door);
 
-            if(GPIO_ReadInputDataBit(GPIOA, SENSOR_PIN) == false)// cua van dong
+            if(GPIO_ReadInputDataBit(GPIOA, SENSOR_PIN) == false && status_sensor_right == false)// cua van dong
             {
                 /** Dong cua */
                 CLOSE_DOOR();
                 Sensor_Detect_Event(GPIOB, PIN_CONTROL_LEFT, &status_sensor_left);
-
-                if(status_sensor_left == false)
+                while(status_sensor_left != false)
                 {
-                    MOTOR_DISABLE();
+                    Sensor_Detect_Event(GPIOB, PIN_CONTROL_LEFT, &status_sensor_left);
                 }
+                MOTOR_DISABLE();
+                LED_OFF();
             }
         }
     }
 }
 
-bool Task_Sync(char *str)
-{
-    char sync_arr[22];
-    char type[5];
-    char id_master[15];
-    char id_node[5];
-    char mess[5];
-    Flash_ReadChar(sync_arr, FLASH_UID_ADDR, sizeof(sync_arr));
-    Process_Message(sync_arr, type, id_master, id_node, mess);
-    if(strstr(str, "sync") != NULL && strstr(str, id_master) != NULL && strstr(str, id_node) && strstr(str, "true") !=  NULL)
-    {
-        return true;
-    }
-    return false;
-}
 
 int main(void)
 {
+    memset(status_pair_arr, 0, sizeof(status_pair_arr));
+    memset(type, 0, sizeof(type));
+    memset(ID_master, 0, sizeof(ID_master));
+    memset(id_node, 0, sizeof(id_node));
+    memset(mess, 0, sizeof(mess));
     SysTick_Init();
-    Timer_Init();
+
     Gpio_Init();
 
-    UART1_Init_A9A10(9600);
-    UART3_Config(9600);
+    UART1_Init_A9A10(1200);
+    UART3_Config(115200);
     GPIO_SetBits(GPIOA, RF_SET_PIN);
     GPIO_ResetBits(GPIOA, RF_CS_PIN);
+    Timer_Init();
     LED_OFF();
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE);
     while(1)
     {
+        Flash_ReadChar(status_pair_arr, FLASH_UID_ADDR, sizeof(status_pair_arr));
+        Process_Message(status_pair_arr, type, ID_master, id_node, mess);
         Task_Pair_RF_Connect(uart1_rx);
         Task_Button_Control_L298();
-        if(Task_Sync(uart1_rx) == true)
-        {
-            slot_rx_time = 0;
-            memset(uart1_rx, 0 , sizeof(uart1_rx));
-        }
-
         if((slot_rx_time == 1) &&  (tx1_status == false))
         {
             tx1_status = true;
-            Task_Send_Sensor_Status();
+            Task_Send_Sensor_Status(ID_master);
         }
 
-        if((slot_rx_time == 3) &&  (rx_status == false))
+        if((slot_rx_time == 2) &&  (rx_status == false))
         {
             rx_status = true;
-            UART_PutStr(USART3, uart1_rx);
-            Task_Uart_Control_L298(uart1_rx);
+            Task_Uart_Control_L298(uart1_rx, ID_master);
+
             memset(uart1_rx, 0, sizeof(uart1_rx));
         }
 
-        if((slot_rx_time == 5) &&  (ping_status == false))
+        if((slot_ping_time == 2) &&  (ping_status == false))
         {
             ping_status = true;
-            Task_Ping_Status();
-            //UART_PutStr(USART3, uart1_rx);
-            //memset(uart1_rx, 0, sizeof(uart1_rx));
+            Task_Ping_Status(ID_master);
+        }
+
+        else{
+            __WFI();
+            __SEV();
+            __WFE();
         }
     }
 }
