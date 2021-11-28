@@ -100,7 +100,6 @@
 		<Unit filename="SPL\inc\delay.h" />
 		<Unit filename="SPL\inc\driver_uart.h" />
 		<Unit filename="SPL\inc\flash.h" />
-		<Unit filename="SPL\inc\lowpowerMCU.h" />
 		<Unit filename="SPL\inc\misc.h" />
 		<Unit filename="SPL\inc\stm32f10x_adc.h" />
 		<Unit filename="SPL\inc\stm32f10x_bkp.h" />
@@ -131,9 +130,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="SPL\src\flash.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="SPL\src\lowpowerMCU.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="SPL\src\misc.c">

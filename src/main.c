@@ -16,7 +16,7 @@
 #include "delay.h"
 #include <stdbool.h>
 #include <string.h>
-
+#include "flash.h"
 #define BUTTON_PAIR               GPIO_Pin_0
 #define SENSOR_PIN                GPIO_Pin_1
 #define RF_CS_PIN                 GPIO_Pin_7
@@ -364,7 +364,6 @@ void Task_Uart_Control_L298(char *str, char *ID_master)
     char id_node_rx[5];
     char mess_rx[5];
     bool status_door;
-    bool status_motor_t;
     bool status_sensor_left;
     bool status_sensor_right;
 

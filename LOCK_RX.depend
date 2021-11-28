@@ -472,10 +472,11 @@
 1630636259 source:d:\donnv\lock\lock_rx\src\system_stm32f10x.c
 	"stm32f10x.h"
 
-1637639783 source:d:\donnv\lock\lock_rx\src\main.c
+1638059532 source:d:\donnv\lock\lock_rx\src\main.c
 	"stm32f10x_conf.h"
 	"driver_uart.h"
 	"delay.h"
 	<stdbool.h>
 	<string.h>
+	"flash.h"
 

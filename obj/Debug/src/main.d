@@ -11,4 +11,4 @@ obj\debug\src\main.o: src\main.c inc/stm32f10x_conf.h \
  SPL\inc/stm32f10x_spi.h SPL\inc/stm32f10x_tim.h \
  SPL\inc/stm32f10x_usart.h SPL\inc/stm32f10x_wwdg.h SPL\inc/misc.h \
  SPL\inc/driver_uart.h SPL\inc/stm32f10x_usart.h SPL\inc/stm32f10x_rcc.h \
- SPL\inc/delay.h
+ SPL\inc/delay.h SPL\inc/flash.h SPL\inc/delay.h
