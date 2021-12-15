@@ -16,14 +16,9 @@
 			<Cursor1 position="3226" topLine="84" />
 		</Cursor>
 	</File>
-	<File name="SPL\src\flash.c" open="0" top="0" tabpos="15" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="SPL\src\flash.c" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1989" topLine="40" />
-		</Cursor>
-	</File>
-	<File name="SPL\src\lowpowerMCU.c" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="0" topLine="4" />
+			<Cursor1 position="1655" topLine="40" />
 		</Cursor>
 	</File>
 	<File name="SPL\src\stm32f10x_exti.c" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -36,9 +31,9 @@
 			<Cursor1 position="21703" topLine="587" />
 		</Cursor>
 	</File>
-	<File name="src\main.c" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+	<File name="src\main.c" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1973" topLine="36" />
+			<Cursor1 position="12669" topLine="429" />
 		</Cursor>
 	</File>
 	<File name="src\startup_stm32f10x_md.S" open="0" top="0" tabpos="14" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">

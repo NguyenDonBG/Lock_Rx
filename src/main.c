@@ -56,8 +56,8 @@ char ID_master[5];
 char id_node[1];
 char mess[1];
 
-extern char Rx_bufArr[13];
-extern char uart1_rx[13];
+extern char Rx_bufArr[15];
+extern char uart1_rx[15];
 
 void Timer_Init(void)
 {
@@ -79,6 +79,8 @@ void Timer_Init(void)
     NVIC_Init(&NVIC_InitStructure);
 }
 
+
+
 void TIM2_IRQHandler(void)
 {
     if(TIM_GetFlagStatus(TIM2, TIM_IT_Update) != RESET)
@@ -87,12 +89,7 @@ void TIM2_IRQHandler(void)
         status_motor = false;
         if(slot_rx_time == 1) tx1_status = false;
         if(slot_rx_time == 2) rx_status = false;
-        if(slot_rx_time == 3)
-        {
-            slot_ping_time++;
-            if(slot_ping_time == 2) ping_status = false;
-            if(slot_ping_time > 2) slot_ping_time = 0;
-        }
+        if(slot_rx_time == 3) ping_status = false;
         if(slot_rx_time > 3)
         {
             slot_rx_time = 0;
@@ -440,17 +437,16 @@ int main(void)
         {
             tx1_status = true;
             Task_Send_Sensor_Status(ID_master);
+            //Task_Ping_Status(ID_master);
         }
-
         if((slot_rx_time == 2) &&  (rx_status == false))
         {
             rx_status = true;
             Task_Uart_Control_L298(uart1_rx, ID_master);
-
             memset(uart1_rx, 0, sizeof(uart1_rx));
         }
 
-        if((slot_ping_time == 2) &&  (ping_status == false))
+       if((slot_rx_time == 3) &&  (ping_status == false))
         {
             ping_status = true;
             Task_Ping_Status(ID_master);
